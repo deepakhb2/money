@@ -1,4 +1,4 @@
-# RubyMoney - Money
+## RubyMoney - Money
 
 [![Gem Version](https://badge.fury.io/rb/money.svg)](https://rubygems.org/gems/money)
 [![Build Status](https://travis-ci.org/RubyMoney/money.svg?branch=master)](https://travis-ci.org/RubyMoney/money)
