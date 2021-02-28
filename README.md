@@ -3,7 +3,6 @@
 [![Gem Version](https://badge.fury.io/rb/money.svg)](https://rubygems.org/gems/money)
 [![Build Status](https://travis-ci.org/RubyMoney/money.svg?branch=master)](https://travis-ci.org/RubyMoney/money)
 [![Code Climate](https://codeclimate.com/github/RubyMoney/money.svg)](https://codeclimate.com/github/RubyMoney/money)
-[![Coverage Status](https://coveralls.io/repos/RubyMoney/money/badge.svg?branch=master)](https://coveralls.io/r/RubyMoney/money?branch=master)
 [![Inline docs](https://inch-ci.org/github/RubyMoney/money.svg)](https://inch-ci.org/github/RubyMoney/money)
 [![License](https://img.shields.io/github/license/RubyMoney/money.svg)](https://opensource.org/licenses/MIT)
 
@@ -316,17 +315,24 @@ The following example implements an `ActiveRecord` store to save exchange rates 
 ```ruby
 # rails g model exchange_rate from:string to:string rate:float
 
-# for Rails 5 replace ActiveRecord::Base with ApplicationRecord
-class ExchangeRate < ActiveRecord::Base
+class ExchangeRate < ApplicationRecord
   def self.get_rate(from_iso_code, to_iso_code)
     rate = find_by(from: from_iso_code, to: to_iso_code)
-    rate.present? ? rate.rate : nil
+    rate&.rate
   end
 
   def self.add_rate(from_iso_code, to_iso_code, rate)
     exrate = find_or_initialize_by(from: from_iso_code, to: to_iso_code)
     exrate.rate = rate
     exrate.save!
+  end
+
+  def self.each_rate
+    return find_each unless block_given?
+
+    find_each do |rate|
+      yield rate.from, rate.to, rate.rate
+    end
   end
 end
 ```
@@ -405,7 +411,7 @@ Money.from_amount(2.34567).format #=> "$2.35"
 To retain the additional precision, you will also need to set `infinite_precision` to `true`.
 
 ```ruby
-Money.infinite_precision = true
+Money.default_infinite_precision = true
 Money.from_amount(2.34567).format #=> "$2.34567"
 ```
 
@@ -417,7 +423,7 @@ To round to the nearest cent (or anything more precise), you can use the `round`
 2.34567.round(2)  #=> 2.35
 
 # Money
-Money.infinite_precision = true
+Money.default_infinite_precision = true
 Money.new(2.34567).format       #=> "$0.0234567"
 Money.new(2.34567).round.format #=> "$0.02"
 Money.new(2.34567).round(BigDecimal::ROUND_HALF_UP, 2).format #=> "$0.0235"
@@ -428,7 +434,6 @@ You can set the default rounding mode by passing one of the `BigDecimal` mode en
 Money.rounding_mode = BigDecimal::ROUND_HALF_EVEN
 ```
 See [BigDecimal::ROUND_MODE](https://ruby-doc.org/stdlib-2.5.1/libdoc/bigdecimal/rdoc/BigDecimal.html#ROUND_MODE) for more information
-
 
 ## Ruby on Rails
 

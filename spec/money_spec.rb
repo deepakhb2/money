@@ -729,6 +729,16 @@ YAML
       end
     end
 
+    context "with all zeros" do
+      subject { Money.us_dollar(100).allocate(arry).map(&:fractional) }
+
+      let(:arry) { [0, 0] }
+
+      it "allocates evenly" do
+         expect(subject).to eq [50, 50]
+      end
+    end
+
     it "keeps subclasses intact" do
       special_money_class = Class.new(Money)
       expect(special_money_class.new(005).allocate([1]).first).to be_a special_money_class
@@ -940,6 +950,20 @@ YAML
 
       expect(Money).not_to receive(:warn)
       Money.rounding_mode
+    end
+  end
+
+  describe '.default_bank' do
+    after { Money.setup_defaults }
+
+    it 'accepts a bank instance' do
+      Money.default_bank = Money::Bank::SingleCurrency.instance
+      expect(Money.default_bank).to be_instance_of(Money::Bank::SingleCurrency)
+    end
+
+    it 'accepts a lambda' do
+      Money.default_bank = lambda { Money::Bank::SingleCurrency.instance }
+      expect(Money.default_bank).to be_instance_of(Money::Bank::SingleCurrency)
     end
   end
 end
